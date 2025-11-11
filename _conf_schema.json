@@ -1,0 +1,20 @@
+{
+    "repeat_group_whitelist": {
+        "description":"群聊复读白名单",
+        "type": "list",
+        "hint": "只在白名单群聊中启用，留空则视为所有群聊启用",
+        "default":[]
+    },
+    "repeat_user_whitelist": {
+        "description":"复读用户白名单",
+        "type": "list",
+        "hint": "只对白名单中成员启用，留空则视为对所有人启用（格式为 qq号,昵称 ）",
+        "default":["123,xxx"]
+    },
+    "repeat_words_blacklist":{
+        "description":"屏蔽词",
+        "type": "list",
+        "hint": "留空则视为无屏蔽词",
+        "default":[]
+    }
+}
