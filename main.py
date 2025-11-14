@@ -9,7 +9,7 @@ from astrbot.api import AstrBotConfig
 from astrbot.core.message.message_event_result import MessageChain
 
 
-@register("simplerepeater", "KirisameMashiro", "一个简单的复读插件", "1.2")
+@register("simplerepeater", "KirisameMashiro", "一个简单的复读插件", "1.3")
 class RepeatPlugin(Star):
     def __init__(self, context: Context, config: AstrBotConfig):
         super().__init__(context)
@@ -103,3 +103,9 @@ class RepeatPlugin(Star):
         if first_type == "Json":  # 特殊信息追加提示(如qq小程序)
             await asyncio.sleep(1)
             await event.send(MessageChain([Comp.Plain("发送人:"), username_chain]))
+
+    @filter.command("repeater_test")
+    @filter.permission_type(filter.PermissionType.ADMIN)
+    async def repeater_test(self, event: AstrMessageEvent):
+        """测试复读机状态"""
+        await event.send(MessageChain([Comp.Plain("Success")]))
