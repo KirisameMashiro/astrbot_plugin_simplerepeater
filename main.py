@@ -41,7 +41,11 @@ class RepeatPlugin(Star):
         chain = list(message.message)
         username_chain = Comp.Plain("")
 
-        MESSAGE_TYPE = {"Forward": "[聊天记录]", "Record": "[语音消息]", "Video": "[视频]"}
+        MESSAGE_TYPE = {
+            "Forward": "[聊天记录]",
+            "Record": "[语音消息]",
+            "Video": "[视频]",
+        }
 
         if (
             self.repeat_group_whitelist and group_id not in self.repeat_group_whitelist
@@ -77,7 +81,7 @@ class RepeatPlugin(Star):
                 comp_type = str(comp.type).split(".")[-1]
                 if comp_type in MESSAGE_TYPE:
                     reply_chain.append(Comp.Plain(MESSAGE_TYPE[comp_type]))
-                elif (comp_type == "Image"):
+                elif comp_type == "Image":
                     reply_chain.append(Comp.Plain("[图片]"))
                 else:
                     reply_chain.append(comp)
@@ -88,7 +92,10 @@ class RepeatPlugin(Star):
                 comp_type = str(comp.type).split(".")[-1]
                 if comp_type in MESSAGE_TYPE:
                     new_chain.append(Comp.Plain(MESSAGE_TYPE[comp_type]))
-                elif (comp_type == "Image" and message.raw_message["message"][0]["data"]["sub_type"] == 0): # 不过滤动画表情
+                elif (
+                    comp_type == "Image"
+                    and message.raw_message["message"][0]["data"]["sub_type"] == 0
+                ):  # 不过滤动画表情
                     new_chain.append(Comp.Plain("[图片]"))
                 else:
                     new_chain.append(comp)
@@ -108,4 +115,4 @@ class RepeatPlugin(Star):
     @filter.permission_type(filter.PermissionType.ADMIN)
     async def repeater_test(self, event: AstrMessageEvent):
         """测试复读机状态"""
-        await event.send(MessageChain([Comp.Plain("Success")]))
+        await event.send(MessageChain([Comp.Plain("Success.")]))
