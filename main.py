@@ -9,7 +9,7 @@ from astrbot.api import AstrBotConfig
 from astrbot.core.message.message_event_result import MessageChain
 
 
-@register("simplerepeater", "KirisameMashiro", "一个简单的复读插件", "1.0")
+@register("simplerepeater", "KirisameMashiro", "一个简单的复读插件", "1.1")
 class RepeatPlugin(Star):
     def __init__(self, context: Context, config: AstrBotConfig):
         super().__init__(context)
@@ -23,11 +23,14 @@ class RepeatPlugin(Star):
             "repeat_words_blacklist", []
         )  # 屏蔽词导入
 
-        self.repeat_users = []  # 用户白名单处理
+        self.repeat_users = {}  # 用户白名单处理 改为使用 dict
         for item in self.repeat_user_whitelist:
-            key, value = item.split(",")
-            self.repeat_users.append((key, value))
-            # print(f"key:{key},value:{value}")
+            try:
+                key, value = item.split(",", 1)
+                # print(f"key:{key},value:{value}")
+                self.repeat_users[key] = value
+            except ValueError:
+                logger.warning(f"用户白名单格式错误,已跳过:{item}")
 
     @filter.event_message_type(filter.EventMessageType.GROUP_MESSAGE)  # 接收群事件
     async def repeat(self, event: AstrMessageEvent):
@@ -35,8 +38,10 @@ class RepeatPlugin(Star):
         message = event.message_obj
         group_id = message.session_id
         sender_id = message.sender.user_id
-        chain = message.message
+        chain = list(message.message)
         username_chain = Comp.Plain("")
+
+        TEXT_TYPE = {"Forward": "[聊天记录]", "Record": "[语音消息]", "Video": "[视频]"}
 
         if (
             self.repeat_group_whitelist and group_id not in self.repeat_group_whitelist
@@ -44,9 +49,7 @@ class RepeatPlugin(Star):
             # print(f"群{group_id}不在白名单中")
             return
         if self.repeat_users:  # 用户白名单过滤
-            user_name = next(
-                (value for key, value in self.repeat_users if key == sender_id), None
-            )
+            user_name = self.repeat_users.get(sender_id)
             if user_name is None:
                 # print(f"用户{sender_id}不在白名单中")
                 return
@@ -56,7 +59,7 @@ class RepeatPlugin(Star):
             if word in event.message_str:
                 await asyncio.sleep(1.5)
                 await event.send(
-                    MessageChain([Comp.Plain("触发屏蔽词"), username_chain])
+                    MessageChain([Comp.Plain(f"触发屏蔽词:{word}"), username_chain])
                 )
                 return
 
@@ -66,17 +69,13 @@ class RepeatPlugin(Star):
         chain_type = str(chain[0].type).split(".")[
             -1
         ]  # 获取第一段消息类型 用于判断复读逻辑
-        if chain_type == "Forward":
-            chain = [Comp.Plain("[聊天记录]")]
+        if chain_type in TEXT_TYPE:  # 获取文本消息类型
+            chain = [Comp.Plain(TEXT_TYPE[chain_type])]
         elif (
             chain_type == "Image"
             and message.raw_message["message"][0]["data"]["sub_type"] == 0
         ):  # 不过滤动画表情
             chain = [Comp.Plain("[图片]")]
-        elif chain_type == "Record":
-            chain = [Comp.Plain("[语音消息]")]
-        elif chain_type == "Video":
-            chain = [Comp.Plain("[视频]")]
         elif chain_type == "Reply":  # 编写回复消息链
             reply_id = chain[0].id
             # print(f"reply_id:{reply_id}")
@@ -85,17 +84,12 @@ class RepeatPlugin(Star):
                 reply_chain.append(comp)
             chain = reply_chain
 
-        random_time = (
-            random.random() * 5000
-            + random.random() * 2000
-            + random.random() * 1000
-            + 1000
-        )
-        await asyncio.sleep(random_time / 1000)  # 延迟发送
+        random_time = random.uniform(2.0, 4.0)
+        await asyncio.sleep(random_time)  # 延迟发送
 
         chain.append(username_chain)
         await event.send(MessageChain(chain))
 
         if chain_type == "Json":  # 特殊信息追加提示(如qq小程序)
-            await asyncio.sleep(1.5)
+            await asyncio.sleep(1)
             await event.send(MessageChain([Comp.Plain("发送人:"), username_chain]))
