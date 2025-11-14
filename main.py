@@ -8,7 +8,6 @@ from astrbot.api import logger
 from astrbot.api import AstrBotConfig
 from astrbot.core.message.message_event_result import MessageChain
 
-
 @register("simplerepeater", "KirisameMashiro", "一个简单的复读插件", "1.0")
 class RepeatPlugin(Star):
     def __init__(self, context: Context, config: AstrBotConfig):
@@ -61,7 +60,7 @@ class RepeatPlugin(Star):
                 return
 
         print(f"raw_message:{message.raw_message}")  # 平台下发的原始消息
-        # print(f"message:{chain}") #消息链
+        print(f"message:{chain}") #消息链
 
         chain_type = str(chain[0].type).split(".")[
             -1
@@ -77,6 +76,13 @@ class RepeatPlugin(Star):
             chain = [Comp.Plain("[语音消息]")]
         elif chain_type == "Video":
             chain = [Comp.Plain("[视频]")]
+        elif chain_type == "Reply": #编写回复消息链
+            reply_id = chain[0].id
+            # print(f"reply_id:{reply_id}")
+            reply_chain = [Comp.Reply(id=reply_id)]
+            for comp in chain[1:]:
+                reply_chain.append(comp)
+            chain = reply_chain
 
         random_time = (
             random.random() * 5000
@@ -92,3 +98,8 @@ class RepeatPlugin(Star):
         if chain_type == "Json":  # 特殊信息追加提示(如qq小程序)
             await asyncio.sleep(1.5)
             await event.send(MessageChain([Comp.Plain("发送人:"), username_chain]))
+
+    @filter.command("reply")
+    @filter.permission_type(filter.PermissionType.ADMIN)
+    async def reply(self, event: AstrMessageEvent):
+        await event.send(MessageChain([Comp.Reply(id="1477926743"),Comp.Plain("[回复]")]))
