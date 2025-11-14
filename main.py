@@ -41,7 +41,7 @@ class RepeatPlugin(Star):
         chain = list(message.message)
         username_chain = Comp.Plain("")
 
-        TEXT_TYPE = {"Forward": "[聊天记录]", "Record": "[语音消息]", "Video": "[视频]"}
+        MESSAGE_TYPE = {"Forward": "[聊天记录]", "Record": "[语音消息]", "Video": "[视频]"}
 
         if (
             self.repeat_group_whitelist and group_id not in self.repeat_group_whitelist
@@ -66,23 +66,33 @@ class RepeatPlugin(Star):
         # print(f"raw_message:{message.raw_message}")  # 平台下发的原始消息
         # print(f"message:{chain}") #消息链
 
-        chain_type = str(chain[0].type).split(".")[
+        first_type = str(chain[0].type).split(".")[
             -1
         ]  # 获取第一段消息类型 用于判断复读逻辑
-        if chain_type in TEXT_TYPE:  # 获取文本消息类型
-            chain = [Comp.Plain(TEXT_TYPE[chain_type])]
-        elif (
-            chain_type == "Image"
-            and message.raw_message["message"][0]["data"]["sub_type"] == 0
-        ):  # 不过滤动画表情
-            chain = [Comp.Plain("[图片]")]
-        elif chain_type == "Reply":  # 编写回复消息链
+        if first_type == "Reply":  # 优先判断是否为回复类型 编写回复消息链
             reply_id = chain[0].id
             # print(f"reply_id:{reply_id}")
             reply_chain = [Comp.Reply(id=reply_id)]
             for comp in chain[1:]:
-                reply_chain.append(comp)
+                comp_type = str(comp.type).split(".")[-1]
+                if comp_type in MESSAGE_TYPE:
+                    reply_chain.append(Comp.Plain(MESSAGE_TYPE[comp_type]))
+                elif (comp_type == "Image"):
+                    reply_chain.append(Comp.Plain("[图片]"))
+                else:
+                    reply_chain.append(comp)
             chain = reply_chain
+        else:
+            new_chain = []
+            for comp in chain:
+                comp_type = str(comp.type).split(".")[-1]
+                if comp_type in MESSAGE_TYPE:
+                    new_chain.append(Comp.Plain(MESSAGE_TYPE[comp_type]))
+                elif (comp_type == "Image" and message.raw_message["message"][0]["data"]["sub_type"] == 0): # 不过滤动画表情
+                    new_chain.append(Comp.Plain("[图片]"))
+                else:
+                    new_chain.append(comp)
+            chain = new_chain
 
         random_time = random.uniform(2.0, 4.0)
         await asyncio.sleep(random_time)  # 延迟发送
@@ -90,6 +100,6 @@ class RepeatPlugin(Star):
         chain.append(username_chain)
         await event.send(MessageChain(chain))
 
-        if chain_type == "Json":  # 特殊信息追加提示(如qq小程序)
+        if first_type == "Json":  # 特殊信息追加提示(如qq小程序)
             await asyncio.sleep(1)
             await event.send(MessageChain([Comp.Plain("发送人:"), username_chain]))
