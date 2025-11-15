@@ -9,7 +9,7 @@ from astrbot.api import AstrBotConfig
 from astrbot.core.message.message_event_result import MessageChain
 
 
-@register("simplerepeater", "KirisameMashiro", "一个简单的复读插件", "1.3")
+@register("simplerepeater", "KirisameMashiro", "一个简单的复读插件", "1.4")
 class RepeatPlugin(Star):
     def __init__(self, context: Context, config: AstrBotConfig):
         super().__init__(context)
