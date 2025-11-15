@@ -67,8 +67,8 @@ class RepeatPlugin(Star):
                 )
                 return
 
-        # print(f"raw_message:{message.raw_message}")  # 平台下发的原始消息
-        # print(f"message:{chain}") #消息链
+        print(f"raw_message:{message.raw_message}")  # 平台下发的原始消息
+        print(f"message:{chain}") #消息链
 
         first_type = str(chain[0].type).split(".")[
             -1
@@ -116,3 +116,34 @@ class RepeatPlugin(Star):
     async def repeater_test(self, event: AstrMessageEvent):
         """测试复读机状态"""
         await event.send(MessageChain([Comp.Plain("Success.")]))
+
+    @filter.event_message_type(filter.EventMessageType.GROUP_MESSAGE)
+    async def display(self, event: AstrMessageEvent):
+        """展示回复特定群友时的原消息"""
+        chain = list(event.message_obj.message)
+        username = Comp.Plain("")
+        origin_chain = []
+        display_chain = [(Comp.Plain("原消息："))]
+
+        for word in self.repeat_words_blacklist:  # 屏蔽词过滤
+            if word in event.message_str:
+                await asyncio.sleep(1.5)
+                await event.send(
+                    MessageChain([Comp.Plain(f"触发屏蔽词:{word}")])
+                )
+                return
+            
+        first_type = str(chain[0].type).split(".")[-1]  # 获取第一段判断是否为回复消息
+        if first_type =="Reply":
+            comp = chain[0]
+            # print(f"comp:{comp}")
+            # print(f"repeat_users:{self.repeat_users}")
+            sender_id = str(comp.sender_id) #获取原消息发送人id
+            if sender_id in self.repeat_users:  # 判断原消息发送人是否在白名单中
+                username = Comp.Plain(f"（{self.repeat_users[sender_id]}）")
+                origin_chain = comp.chain # 获取原消息链（暂未做如json的消息处理）
+                display_chain.extend(origin_chain)
+                display_chain.append(username)
+                await event.send(MessageChain(display_chain))
+        else:
+            return
