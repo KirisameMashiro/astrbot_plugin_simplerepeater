@@ -88,7 +88,7 @@ class RepeatPlugin(Star):
                     reply_chain.append(comp)
             chain = reply_chain
         else:
-            chain = self.get_filtered_chain(message,RepeatPlugin.MESSAGE_TYPE)
+            chain = self.get_filtered_chain(message, RepeatPlugin.MESSAGE_TYPE)
 
         random_time = random.uniform(2.0, 4.0)
         await asyncio.sleep(random_time)  # 延迟发送
@@ -126,11 +126,11 @@ class RepeatPlugin(Star):
                 return
 
         first_type = str(chain[0].type).split(".")[-1]  # 获取第一段判断是否为回复消息
-        if first_type =="Reply":
+        if first_type == "Reply":
             comp = chain[0]
             # print(f"comp:{comp}")
             # print(f"repeat_users:{self.repeat_users}")
-            sender_id = str(comp.sender_id) #获取原消息发送人id
+            sender_id = str(comp.sender_id)  # 获取原消息发送人id
             if sender_id in self.repeat_users:  # 判断原消息发送人是否在白名单中
                 for word in self.repeat_words_blacklist:  # 屏蔽词过滤
                     if word in comp.message_str:
@@ -140,13 +140,15 @@ class RepeatPlugin(Star):
                         )
                         return
                 username = Comp.Plain(f"（{self.repeat_users[sender_id]}）")
-                origin_chain = comp.chain # 获取原消息链（暂未做如json的消息处理）
-                print(f"origin_chain:{origin_chain}")
+                origin_chain = comp.chain  # 获取原消息链（暂未做如json的消息处理）
+                # print(f"origin_chain:{origin_chain}")
                 new_chain = []
                 for component in origin_chain:
                     component_type = str(component.type).split(".")[-1]
                     if component_type in RepeatPlugin.MESSAGE_TYPE:
-                        new_chain.append(Comp.Plain(RepeatPlugin.MESSAGE_TYPE[component_type]))
+                        new_chain.append(
+                            Comp.Plain(RepeatPlugin.MESSAGE_TYPE[component_type])
+                        )
                     elif component_type == "Image":
                         new_chain.append(Comp.Plain("[图片]"))
                     else:
@@ -157,19 +159,20 @@ class RepeatPlugin(Star):
         else:
             return
 
-    def get_filtered_chain(self,message,MESSAGE_TYPE):
+    def get_filtered_chain(self, message, MESSAGE_TYPE):
         """获取过滤后的消息链"""
         # print(f"func_message:{message}")
         before_chain = list(message.message)
         # print(f"func_before_chain:{before_chain}")
         after_chain = []
-        for index,comp in enumerate(before_chain):
+        for index, comp in enumerate(before_chain):
             comp_type = str(comp.type).split(".")[-1]
             if comp_type in MESSAGE_TYPE:
                 after_chain.append(Comp.Plain(MESSAGE_TYPE[comp_type]))
             elif (
                 comp_type == "Image"
-                and message.raw_message["message"][index]["data"]["sub_type"] == 0 #通过索引对应检测避免访问不存在的字段
+                and message.raw_message["message"][index]["data"]["sub_type"]
+                == 0  # 通过索引对应检测避免访问不存在的字段
             ):  # 不过滤动画表情
                 after_chain.append(Comp.Plain("[图片]"))
             else:
