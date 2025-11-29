@@ -107,7 +107,7 @@ class RepeatPlugin(Star):
         print(f"raw_message:{message.raw_message}")  # 平台下发的原始消息
         # print(f"message:{chain}") #消息链
 
-        if not chain or len(chain) == 0: #过滤空消息
+        if not chain or len(chain) == 0:  # 过滤空消息
             return
         first_type = str(chain[0].type).split(".")[
             -1
@@ -163,7 +163,7 @@ class RepeatPlugin(Star):
             if word in event.message_str:
                 return
 
-        if not chain or len(chain) == 0: #过滤空消息
+        if not chain or len(chain) == 0:  # 过滤空消息
             return
         first_type = str(chain[0].type).split(".")[-1]  # 获取第一段判断是否为回复消息
         if first_type == "Reply":
@@ -183,7 +183,7 @@ class RepeatPlugin(Star):
                 origin_chain = comp.chain  # 获取原消息链（暂未做如json的消息处理）
                 # print(f"origin_chain:{origin_chain}")
                 new_chain = []
-                for index,component in enumerate(origin_chain):
+                for index, component in enumerate(origin_chain):
                     component_type = str(component.type).split(".")[-1]
                     if component_type in RepeatPlugin.MESSAGE_TYPE:
                         new_chain.append(
@@ -224,7 +224,7 @@ class RepeatPlugin(Star):
         return after_chain
 
     @filter.command("image")
-    async def show(self, event: AstrMessageEvent, image_id:int):
+    async def show(self, event: AstrMessageEvent, image_id: int):
         """根据id展示指定图片"""
         message = event.message_obj
         group_id = message.session_id
@@ -247,7 +247,7 @@ class RepeatPlugin(Star):
 
         chain = [
             Comp.Plain(f"图片{image_id}为："),
-            Comp.Image.fromURL(url=self.image_data[image_id])
+            Comp.Image.fromURL(url=self.image_data[image_id]),
         ]
 
         yield event.chain_result(chain)
