@@ -16,5 +16,11 @@
         "type": "list",
         "hint": "留空则视为无屏蔽词",
         "default":[]
+    },
+    "show_user_whitelist":{
+        "description":"/image指令用户白名单",
+        "type": "list",
+        "hint": "只对白名单中成员启用，留空则视为对所有人启用",
+        "default":["123"]
     }
 }

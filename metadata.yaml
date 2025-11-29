@@ -1,6 +1,6 @@
 name: astrbot_plugin_simplerepeater
 display_name: 简单的复读机
 desc: 个人学习向制作，用于复读特定群友的部分聊天内容。作用为本人屏蔽群友以防止群友搬石，但又需要知道群友说了什么话时通过bot复读获取信息。
-version: v1.5
+version: v1.6
 author: KirisameMashiro
 repo: https://github.com/KirisameMashiro/astrbot_plugin_simplerepeater
